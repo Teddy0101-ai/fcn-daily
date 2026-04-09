@@ -11,48 +11,50 @@
 </head>
 <body>
   <div class="page-shell detail-page">
-    <header class="hero detail-hero">
-      <div class="detail-topbar">
-        <a class="back-link" href="index.html">返回</a>
-        <div class="detail-top-title" id="detail-page-title">选品详情</div>
+    <section class="detail-top-hero">
+      <div class="detail-nav">
+        <a class="detail-back" href="index.html">返回</a>
+        <div class="detail-nav-title" id="detail-page-title">选品详情</div>
       </div>
 
-      <div class="detail-subtitle" id="detail-product-type">Fixed Coupon Note</div>
-      <h1 class="detail-main-title" id="detail-title">选品详情</h1>
+      <div class="detail-product-type" id="detail-product-type">Fixed Coupon Note</div>
+      <h1 class="detail-title" id="detail-title">中国石油 + 中国海洋石油</h1>
 
-      <button class="share-btn detail-share-btn" id="detail-share-btn">分享</button>
+      <div class="detail-share-row">
+        <button class="detail-share-btn" id="detail-share-btn">分享</button>
+      </div>
 
-      <section class="summary-card">
-        <div class="summary-grid">
-          <div class="summary-item">
-            <div class="summary-value summary-red" id="summary-coupon">-</div>
-            <div class="summary-label">票息(年化)</div>
+      <section class="detail-summary-card">
+        <div class="detail-summary-grid">
+          <div class="detail-summary-item">
+            <div class="detail-summary-value detail-summary-red" id="summary-coupon">10%</div>
+            <div class="detail-summary-label">票息(年化)</div>
           </div>
-          <div class="summary-item">
-            <div class="summary-value" id="summary-strike">-</div>
-            <div class="summary-label">执行价格</div>
+          <div class="detail-summary-item">
+            <div class="detail-summary-value" id="summary-strike">78.03%</div>
+            <div class="detail-summary-label">执行价格</div>
           </div>
-          <div class="summary-item">
-            <div class="summary-value" id="summary-ko">-</div>
-            <div class="summary-label">敲出价格</div>
+          <div class="detail-summary-item">
+            <div class="detail-summary-value" id="summary-ko">100%</div>
+            <div class="detail-summary-label">敲出价格</div>
           </div>
-          <div class="summary-item">
-            <div class="summary-value" id="summary-tenor">-</div>
-            <div class="summary-label">期限</div>
+          <div class="detail-summary-item">
+            <div class="detail-summary-value" id="summary-tenor">6M</div>
+            <div class="detail-summary-label">期限</div>
           </div>
         </div>
 
-        <div class="quote-time" id="quote-time">报价时间：-</div>
+        <div class="detail-quote-time" id="quote-time">报价时间：2026/04/08 08:51:00</div>
       </section>
-    </header>
+    </section>
 
-    <section class="detail-card">
-      <h2 class="section-title">选品详情</h2>
-      <div class="detail-grid" id="detail-grid"></div>
+    <section class="detail-info-card">
+      <h2 class="detail-section-title">选品详情</h2>
+      <div class="detail-info-grid" id="detail-grid"></div>
       <div class="detail-note">注：“每日”代表每日观察是否敲出。</div>
     </section>
 
-    <section class="advisor-card">
+    <section class="advisor-card detail-advisor-card">
       <div class="advisor-left">
         <div class="avatar-placeholder">点击此处<br>上传个人头像</div>
         <div class="advisor-name" id="detail-advisor-name">Ryan Yi 易俊融</div>
