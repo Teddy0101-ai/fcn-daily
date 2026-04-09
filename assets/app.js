@@ -44,7 +44,7 @@ function renderRows(items) {
   const list = document.getElementById("product-list");
 
   if (!items || !items.length) {
-    list.innerHTML = `<div style="padding:16px 2px;color:#999;font-size:12px;">暂无数据</div>`;
+    list.innerHTML = `<div style="padding:16px 0;color:#999;font-size:12px;">暂无数据</div>`;
     return;
   }
 
