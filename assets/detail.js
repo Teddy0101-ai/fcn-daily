@@ -1,93 +1,115 @@
-async function loadJson(path){
-  const res = await fetch(path + "?t=" + Date.now());
-  if(!res.ok) throw new Error("Failed to load " + path);
-  return await res.json();
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-function getId(){
-  return new URLSearchParams(location.search).get("id");
+function getQueryParam(name) {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
 }
 
-function safe(v){ return (v ?? "") === "" ? "-" : v; }
+async function loadJson(path) {
+  const res = await fetch(`${path}?t=${Date.now()}`);
+  if (!res.ok) throw new Error(`Failed to load ${path}`);
+  return res.json();
+}
 
-async function renderDetail(){
-  const id = getId();
-  const [meta, details] = await Promise.all([
-    loadJson("data/meta.json"),
-    loadJson("data/details.json")
-  ]);
-  const item = details[id];
-  if(!item){
-    document.getElementById("pageTitle").textContent = "选品详情";
-    document.getElementById("content").innerHTML = `<div class="card main-card">未找到对应产品。</div>`;
-    return;
-  }
+function appendDetailRow(container, label, value) {
+  const labelEl = document.createElement("div");
+  labelEl.className = "detail-label";
+  labelEl.textContent = label;
 
-  document.title = `${item.underlying_display} - 选品详情`;
-  document.getElementById("pageTitle").textContent = meta.detail_title_cn || "选品详情";
+  const valueEl = document.createElement("div");
+  valueEl.className = "detail-value";
+  valueEl.innerHTML = escapeHtml(value ?? "");
 
-  document.getElementById("content").innerHTML = `
-    <div class="product-type">${item.product_type_en || meta.product_type_en_default || "Fixed Coupon Note"}</div>
-    <h1 class="detail-name">${item.underlying_display}</h1>
+  container.appendChild(labelEl);
+  container.appendChild(valueEl);
+}
 
-    <div class="metrics">
-      <div class="metric">
-        <div class="value red">${item.coupon_display}</div>
-        <div class="label">票息(年化)</div>
-      </div>
-      <div class="metric">
-        <div class="value">${item.strike_display}</div>
-        <div class="label">执行价格</div>
-      </div>
-      <div class="metric">
-        <div class="value">${item.ko_display}</div>
-        <div class="label">敲出价格</div>
-      </div>
-      <div class="metric">
-        <div class="value">${safe(item.tenor)}</div>
-        <div class="label">期限</div>
-      </div>
-    </div>
-    <div class="quote-time">报价时间：${safe(item.quote_time)}</div>
+function fillDetail(item, meta) {
+  document.title = `${item.underlying_display || "选品详情"} - 选品详情`;
 
-    <div class="section-title">选品详情</div>
-    <div class="card main-card">
-      <div class="detail-grid">
-        <div class="k">挂钩标的</div><div>${safe(item.underlying_detail_display)}</div>
-        <div class="k">期限</div><div>${safe(item.tenor)}</div>
-        <div class="k">锁定期限</div><div>${safe(item.lock_period)}</div>
-        <div class="k">票息(年化)</div><div>${safe(item.coupon_display)}</div>
-        <div class="k">执行价格</div><div>${safe(item.strike_display)}</div>
-        <div class="k">敲出价格</div><div>${safe(item.ko_display)}</div>
-        <div class="k">敲出类型</div><div>${safe(item.ko_type_cn)}</div>
-        <div class="k">敲入价格</div><div>${safe(item.ki_display)}</div>
-        <div class="k">敲入类型</div><div>${safe(item.ki_type_cn)}</div>
-        <div class="k">货币类型</div><div>${safe(item.currency)}</div>
-      </div>
-      <div class="disclaimer" style="margin-top:20px">注：“每日”代表每日观察是否敲出。</div>
-    </div>
+  const pageTitle = document.getElementById("detail-page-title");
+  const productType = document.getElementById("detail-product-type");
+  const title = document.getElementById("detail-title");
+  const summaryCoupon = document.getElementById("summary-coupon");
+  const summaryStrike = document.getElementById("summary-strike");
+  const summaryKo = document.getElementById("summary-ko");
+  const summaryTenor = document.getElementById("summary-tenor");
+  const quoteTime = document.getElementById("quote-time");
+  const detailAdvisorName = document.getElementById("detail-advisor-name");
+  const grid = document.getElementById("detail-grid");
 
-    <div class="card advisor-card">
-      <div class="avatar" id="advisorAvatarText">${meta.advisor_avatar_text || "点击此处\n上传个人头像"}</div>
-      <div class="advisor-name">${meta.advisor_name || "Ryan Yi 易俊融"}</div>
-      <div>
-        <div class="qr-box"></div>
-        <div class="qr-caption">${meta.qr_caption || "长按扫码 咨询申购"}</div>
-      </div>
-    </div>
-  `;
+  if (pageTitle) pageTitle.textContent = meta?.detail_title_cn || "选品详情";
+  if (productType) productType.textContent = meta?.product_type_en || "Fixed Coupon Note";
+  if (title) title.textContent = item.underlying_display || "选品详情";
+  if (summaryCoupon) summaryCoupon.textContent = item.coupon_display || "-";
+  if (summaryStrike) summaryStrike.textContent = item.strike_display || "-";
+  if (summaryKo) summaryKo.textContent = item.ko_display || "-";
+  if (summaryTenor) summaryTenor.textContent = item.tenor || "-";
+  if (quoteTime) quoteTime.textContent = `报价时间：${item.quote_time || meta?.quote_time || "-"}`;
+  if (detailAdvisorName && meta?.advisor_name) detailAdvisorName.textContent = meta.advisor_name;
 
-  const shareBtn = document.getElementById("shareBtn");
-  shareBtn.addEventListener("click", async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({title: item.underlying_display, url: location.href});
-      } catch (_) {}
-    } else {
-      await navigator.clipboard.writeText(location.href);
-      alert("链接已复制");
+  grid.innerHTML = "";
+
+  appendDetailRow(grid, "挂钩标的", item.underlying_detail_display || item.underlying_display || "-");
+  appendDetailRow(grid, "期限", item.tenor || "-");
+  appendDetailRow(grid, "锁定期限", item.lock_period || "-");
+  appendDetailRow(grid, "票息(年化)", item.coupon_display || "-");
+  appendDetailRow(grid, "执行价格", item.strike_display || "-");
+  appendDetailRow(grid, "敲出价格", item.ko_display || "-");
+  appendDetailRow(grid, "敲出类型", item.ko_type_cn || "-");
+  appendDetailRow(grid, "敲入价格", item.ki_display || "-");
+  appendDetailRow(grid, "敲入类型", item.ki_type_cn || "无");
+  appendDetailRow(grid, "货币类型", item.currency || "-");
+}
+
+async function initDetail() {
+  try {
+    const id = getQueryParam("id");
+    const [details, meta] = await Promise.all([
+      loadJson("data/details.json"),
+      loadJson("data/meta.json")
+    ]);
+
+    if (!id || !details[id]) {
+      document.getElementById("detail-title").textContent = "未找到产品";
+      return;
     }
-  }, {once:true});
+
+    fillDetail(details[id], meta);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("detail-title").textContent = "加载失败";
+  }
 }
 
-document.addEventListener("DOMContentLoaded", renderDetail);
+document.addEventListener("click", async (e) => {
+  const shareBtn = e.target.closest("#detail-share-btn");
+  if (!shareBtn) return;
+
+  const shareData = {
+    title: document.title,
+    text: "选品详情",
+    url: window.location.href
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("链接已复制");
+    } catch (err) {
+      alert(window.location.href);
+    }
+  }
+});
+
+initDetail();
