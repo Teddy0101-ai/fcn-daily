@@ -41,26 +41,22 @@ function getDetailLink(item) {
 }
 
 function renderRows(items) {
-  const tbody = document.getElementById("product-tbody");
+  const list = document.getElementById("product-list");
 
   if (!items || !items.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" style="padding:16px 4px;color:#999;font-size:12px;">暂无数据</td>
-      </tr>
-    `;
+    list.innerHTML = `<div style="padding:16px 2px;color:#999;font-size:12px;">暂无数据</div>`;
     return;
   }
 
-  tbody.innerHTML = items.map(item => `
-    <tr>
-      <td class="name-cell">${formatUnderlyingHtml(item.underlying_display || "")}</td>
-      <td class="value-cell">${escapeHtml(item.ko_display || "")}</td>
-      <td class="value-cell">${escapeHtml(item.strike_display || "")}</td>
-      <td class="value-cell">${escapeHtml(item.tenor || "")}</td>
-      <td class="value-cell">${escapeHtml(item.coupon_display || "")}</td>
-      <td class="value-cell"><a class="detail-link" href="${getDetailLink(item)}">详情</a></td>
-    </tr>
+  list.innerHTML = items.map(item => `
+    <div class="product-row">
+      <div class="name-cell">${formatUnderlyingHtml(item.underlying_display || "")}</div>
+      <div class="value-cell">${escapeHtml(item.ko_display || "")}</div>
+      <div class="value-cell">${escapeHtml(item.strike_display || "")}</div>
+      <div class="value-cell">${escapeHtml(item.tenor || "")}</div>
+      <div class="value-cell">${escapeHtml(item.coupon_display || "")}</div>
+      <div class="detail-cell"><a class="detail-link" href="${getDetailLink(item)}">详情</a></div>
+    </div>
   `).join("");
 }
 
@@ -78,19 +74,15 @@ function applyMeta(meta) {
 
 function setActiveTab(tab) {
   state.tab = tab;
-
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   });
-
   renderRows(state.records[tab] || []);
 }
 
 async function loadJson(path) {
   const res = await fetch(`${path}?t=${Date.now()}`);
-  if (!res.ok) {
-    throw new Error(`Failed to load ${path}`);
-  }
+  if (!res.ok) throw new Error(`Failed to load ${path}`);
   return res.json();
 }
 
