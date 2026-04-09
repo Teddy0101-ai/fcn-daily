@@ -18,7 +18,7 @@ body {
 .page-shell {
   width: 100%;
   max-width: 430px;
-  margin: 0 auto;
+  margin: 0 auto;F
   padding: 18px 12px 24px;
 }
 
@@ -103,7 +103,7 @@ body {
 
 .list-head {
   display: grid;
-  grid-template-columns: 1.6fr 1.1fr 1.3fr 0.8fr 1fr 0.6fr;
+  grid-template-columns: 1.6fr 1.6fr 1.6fr 1fr 1fr 0.6fr;
   column-gap: 0;
   align-items: end;
   color: #4f7df0;
@@ -137,7 +137,7 @@ body {
 
 .product-row {
   display: grid;
-  grid-template-columns: 1.6fr 1.1fr 1.3fr 0.8fr 1fr 0.6fr;
+  grid-template-columns: 1.6fr 1.6fr 1.6fr 1fr 1fr 0.6fr;
   column-gap: 0;
   align-items: center;
   padding: 10px 0;
