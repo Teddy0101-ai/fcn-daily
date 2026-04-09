@@ -349,7 +349,7 @@ body {
 
 .detail-summary-label {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 15px;
   color: #9a9a9a;
   line-height: 1.35;
 }
@@ -383,13 +383,13 @@ body {
 
 .detail-info-label {
   color: #9a9a9a;
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.45;
 }
 
 .detail-info-value {
   color: #222;
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.45;
   word-break: break-word;
 }
