@@ -1,23 +1,72 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  />
   <title>选品详情</title>
-  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
-  <div class="page">
-    <div class="topbar">
-      <a class="back" href="index.html">返回</a>
-      <span id="pageTitle">选品详情</span>
-      <button class="share-btn" id="shareBtn" style="position:absolute;right:0;top:50%;transform:translateY(-50%);">分享</button>
-    </div>
+  <div class="page-shell detail-page">
+    <header class="hero detail-hero">
+      <div class="detail-topbar">
+        <a class="back-link" href="index.html">返回</a>
+        <div class="detail-top-title" id="detail-page-title">选品详情</div>
+      </div>
 
-    <div id="content"></div>
+      <div class="detail-subtitle" id="detail-product-type">Fixed Coupon Note</div>
+      <h1 class="detail-main-title" id="detail-title">选品详情</h1>
 
-    <div class="footer-space"></div>
+      <button class="share-btn detail-share-btn" id="detail-share-btn">分享</button>
+
+      <section class="summary-card">
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-value summary-red" id="summary-coupon">-</div>
+            <div class="summary-label">票息(年化)</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value" id="summary-strike">-</div>
+            <div class="summary-label">执行价格</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value" id="summary-ko">-</div>
+            <div class="summary-label">敲出价格</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value" id="summary-tenor">-</div>
+            <div class="summary-label">期限</div>
+          </div>
+        </div>
+
+        <div class="quote-time" id="quote-time">报价时间：-</div>
+      </section>
+    </header>
+
+    <section class="detail-card">
+      <h2 class="section-title">选品详情</h2>
+      <div class="detail-grid" id="detail-grid"></div>
+      <div class="detail-note">注：“每日”代表每日观察是否敲出。</div>
+    </section>
+
+    <section class="advisor-card">
+      <div class="advisor-left">
+        <div class="avatar-placeholder">点击此处<br>上传个人头像</div>
+        <div class="advisor-name" id="detail-advisor-name">Ryan Yi 易俊融</div>
+      </div>
+
+      <div class="advisor-right">
+        <div class="qr-box">
+          <img src="assets/qr.png" alt="咨询申购二维码" />
+        </div>
+        <div class="qr-text">长按扫码 咨询申购</div>
+      </div>
+    </section>
   </div>
+
   <script src="assets/detail.js"></script>
 </body>
 </html>
