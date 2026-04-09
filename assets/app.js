@@ -1,80 +1,149 @@
-async function loadJson(path){
-  const res = await fetch(path + "?t=" + Date.now());
-  if(!res.ok) throw new Error("Failed to load " + path);
-  return await res.json();
+const DATA_FILES = {
+  highlight: "data/highlight.json",
+  usd: "data/usd.json",
+  hkd: "data/hkd.json",
+  meta: "data/meta.json"
+};
+
+const state = {
+  tab: "highlight",
+  records: {
+    highlight: [],
+    usd: [],
+    hkd: []
+  },
+  meta: {}
+};
+
+function splitUnderlyingForDisplay(text) {
+  if (!text) return "";
+  return text
+    .split("+")
+    .map(s => s.trim())
+    .filter(Boolean)
+    .join("<br>");
 }
 
-function getTabFromUrl(){
-  const params = new URLSearchParams(location.search);
-  return params.get("tab") || "highlight";
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-function setTab(tab){
-  const url = new URL(location.href);
-  url.searchParams.set("tab", tab);
-  history.replaceState({}, "", url);
+function formatUnderlyingHtml(text) {
+  return splitUnderlyingForDisplay(escapeHtml(text));
 }
 
-function createRow(item){
-  return `
+function getDetailLink(item) {
+  return `detail.html?id=${encodeURIComponent(item.id || "")}`;
+}
+
+function renderRows(items) {
+  const tbody = document.getElementById("product-tbody");
+
+  if (!items || !items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:16px 4px;color:#999;font-size:12px;">暂无数据</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = items.map(item => `
     <tr>
-      <td class="product-name">${item.underlying_display || ""}</td>
-      <td>${item.ko_display || ""}</td>
-      <td>${item.strike_display || ""}</td>
-      <td>${item.tenor || ""}</td>
-      <td>${item.coupon_display || ""}</td>
-      <td><a class="detail-link" href="detail.html?id=${encodeURIComponent(item.id)}">详情</a></td>
+      <td class="name-cell">${formatUnderlyingHtml(item.underlying_display || "")}</td>
+      <td class="value-cell">${escapeHtml(item.ko_display || "")}</td>
+      <td class="value-cell">${escapeHtml(item.strike_display || "")}</td>
+      <td class="value-cell">${escapeHtml(item.tenor || "")}</td>
+      <td class="value-cell">${escapeHtml(item.coupon_display || "")}</td>
+      <td class="value-cell"><a class="detail-link" href="${getDetailLink(item)}">详情</a></td>
     </tr>
-  `;
-}
-
-async function renderList(){
-  const meta = await loadJson("data/meta.json");
-  const currentTab = getTabFromUrl();
-  const tabMap = {
-    highlight: "data/highlight.json",
-    usd: "data/usd.json",
-    hkd: "data/hkd.json"
-  };
-  const items = await loadJson(tabMap[currentTab] || tabMap.highlight);
-
-  document.getElementById("pageTitle").textContent = meta.site_title_cn || "热门选品";
-  document.getElementById("advisorName").textContent = meta.advisor_name || "Ryan Yi 易俊融";
-  document.getElementById("advisorAvatarText").textContent = meta.advisor_avatar_text || "点击此处\n上传个人头像";
-  document.getElementById("qrCaption").textContent = meta.qr_caption || "长按扫码 咨询申购";
-  document.getElementById("disclaimer").textContent = meta.disclaimer_cn || "";
-
-  document.getElementById("tableHead").innerHTML = `
-    <tr>
-      ${(meta.columns || []).map(c => `<th>${c.label}</th>`).join("")}
-      <th></th>
-    </tr>
-  `;
-  document.getElementById("tableBody").innerHTML = items.map(createRow).join("");
-
-  const tabs = document.getElementById("tabs");
-  tabs.innerHTML = (meta.tabs || []).map(tab => `
-    <button class="tab ${tab.key === currentTab ? "active" : ""}" data-tab="${tab.key}">${tab.label}</button>
   `).join("");
+}
 
-  tabs.querySelectorAll(".tab").forEach(btn => {
-    btn.addEventListener("click", () => {
-      setTab(btn.dataset.tab);
-      renderList();
-    });
+function applyMeta(meta) {
+  if (!meta) return;
+
+  const title = document.getElementById("site-title");
+  const disclaimer = document.getElementById("disclaimer");
+  const advisorName = document.getElementById("advisor-name");
+
+  if (title && meta.site_title_cn) title.textContent = meta.site_title_cn;
+  if (disclaimer && meta.disclaimer_cn) disclaimer.textContent = meta.disclaimer_cn;
+  if (advisorName && meta.advisor_name) advisorName.textContent = meta.advisor_name;
+}
+
+function setActiveTab(tab) {
+  state.tab = tab;
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tab);
   });
 
-  const shareBtn = document.getElementById("shareBtn");
-  shareBtn.addEventListener("click", async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({title: meta.site_title_cn || document.title, url: location.href});
-      } catch (_) {}
-    } else {
-      await navigator.clipboard.writeText(location.href);
-      alert("链接已复制");
-    }
-  }, {once:true});
+  renderRows(state.records[tab] || []);
 }
 
-document.addEventListener("DOMContentLoaded", renderList);
+async function loadJson(path) {
+  const res = await fetch(`${path}?t=${Date.now()}`);
+  if (!res.ok) {
+    throw new Error(`Failed to load ${path}`);
+  }
+  return res.json();
+}
+
+async function init() {
+  try {
+    const [highlight, usd, hkd, meta] = await Promise.all([
+      loadJson(DATA_FILES.highlight),
+      loadJson(DATA_FILES.usd),
+      loadJson(DATA_FILES.hkd),
+      loadJson(DATA_FILES.meta)
+    ]);
+
+    state.records.highlight = highlight || [];
+    state.records.usd = usd || [];
+    state.records.hkd = hkd || [];
+    state.meta = meta || {};
+
+    applyMeta(state.meta);
+    setActiveTab("highlight");
+  } catch (err) {
+    console.error(err);
+    renderRows([]);
+  }
+}
+
+document.addEventListener("click", async (e) => {
+  const tabBtn = e.target.closest(".tab-btn");
+  if (tabBtn) {
+    setActiveTab(tabBtn.dataset.tab);
+    return;
+  }
+
+  const shareBtn = e.target.closest("#share-btn");
+  if (shareBtn) {
+    const shareData = {
+      title: document.title,
+      text: "热门选品",
+      url: window.location.href
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("链接已复制");
+      } catch (err) {
+        alert(window.location.href);
+      }
+    }
+  }
+});
+
+init();
