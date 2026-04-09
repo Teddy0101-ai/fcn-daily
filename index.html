@@ -1,49 +1,77 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  />
   <title>热门选品</title>
-  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
-  <div class="page">
-    <div class="topbar">
-      <span id="pageTitle">热门选品</span>
-      <div class="ghost-actions">
-        <div class="ghost-pill"></div>
-        <div class="ghost-pill" style="width:50px"></div>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-inner">
+        <h1 id="site-title">热门选品</h1>
       </div>
-    </div>
+    </header>
 
-    <div class="card main-card">
-      <div class="tabs-share">
-        <div class="tabs" id="tabs"></div>
-        <button class="share-btn" id="shareBtn">分享</button>
+    <main class="main-card">
+      <div class="toolbar">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="highlight">今日重点</button>
+          <button class="tab-btn" data-tab="usd">USD</button>
+          <button class="tab-btn" data-tab="hkd">HKD</button>
+        </div>
+
+        <button class="share-btn" id="share-btn">分享</button>
       </div>
 
       <div class="table-wrap">
-        <table>
-          <thead id="tableHead"></thead>
-          <tbody id="tableBody"></tbody>
+        <table class="product-table">
+          <colgroup>
+            <col class="col-name" />
+            <col class="col-ko" />
+            <col class="col-strike" />
+            <col class="col-tenor" />
+            <col class="col-coupon" />
+            <col class="col-detail" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>挂钩标的</th>
+              <th>敲出价格</th>
+              <th>执行价格</th>
+              <th>期限</th>
+              <th>票息(年化)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="product-tbody"></tbody>
         </table>
       </div>
 
-      <div class="disclaimer" id="disclaimer"></div>
-    </div>
-
-    <div class="card advisor-card">
-      <div class="avatar" id="advisorAvatarText">点击此处
-上传个人头像</div>
-      <div class="advisor-name" id="advisorName">Ryan Yi 易俊融</div>
-      <div>
-        <div class="qr-box"></div>
-        <div class="qr-caption" id="qrCaption">长按扫码 咨询申购</div>
+      <div class="disclaimer" id="disclaimer">
+        数据截至2026/04/09，本页报价仅供参考，欲知详情可联系相关工作人员。
       </div>
-    </div>
+    </main>
 
-    <div class="footer-space"></div>
+    <section class="advisor-card">
+      <div class="advisor-left">
+        <div class="avatar-placeholder">点击此处<br>上传个人头像</div>
+        <div class="advisor-name" id="advisor-name">Ryan Yi 易俊融</div>
+      </div>
+
+      <div class="advisor-right">
+        <div class="qr-box">
+          <img id="advisor-qr" src="assets/qr.png" alt="咨询申购二维码" />
+        </div>
+        <div class="qr-text">长按扫码 咨询申购</div>
+      </div>
+    </section>
   </div>
+
   <script src="assets/app.js"></script>
 </body>
 </html>
