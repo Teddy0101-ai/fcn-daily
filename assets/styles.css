@@ -128,7 +128,7 @@ body {
 }
 
 .head-detail {
-  text-align: right;
+  text-align: left;
 }
 
 .product-list {
@@ -160,7 +160,7 @@ body {
 }
 
 .detail-cell {
-  text-align: right;
+  text-align: left;
 }
 
 .detail-link {
