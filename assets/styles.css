@@ -19,11 +19,11 @@ body {
   width: 100%;
   max-width: 430px;
   margin: 0 auto;
-  padding: 18px 12px 22px;
+  padding: 18px 12px 24px;
 }
 
 .hero {
-  padding: 22px 0 10px;
+  padding: 26px 0 12px;
   text-align: center;
 }
 
@@ -35,7 +35,7 @@ body {
 
 .hero h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: 29px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 1px;
@@ -51,25 +51,23 @@ body {
 }
 
 .main-card {
-  padding: 14px 14px 12px;
+  padding: 16px 14px 14px;
 }
 
 .toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .tabs {
-  display: flex;
-  gap: 0;
-  background: #fff;
-  border: 1px solid #d6d6d6;
-  border-radius: 14px;
-  padding: 3px;
   flex: 1;
+  display: flex;
+  border: 1px solid #d7d7d7;
+  border-radius: 14px;
+  background: #fff;
+  padding: 4px;
   min-width: 0;
 }
 
@@ -77,7 +75,7 @@ body {
   flex: 1;
   border: 0;
   background: transparent;
-  color: #b7b7b7;
+  color: #b9b9b9;
   font-size: 15px;
   line-height: 1;
   padding: 12px 4px;
@@ -96,7 +94,8 @@ body {
   background: #4f7df0;
   color: #fff;
   font-size: 14px;
-  padding: 12px 18px;
+  line-height: 1;
+  padding: 13px 18px;
   border-radius: 18px;
   cursor: pointer;
   flex-shrink: 0;
@@ -104,17 +103,32 @@ body {
 
 .list-head {
   display: grid;
-  grid-template-columns: 44% 12% 16% 9% 15% 4%;
+  grid-template-columns: 2.7fr 1fr 1fr 0.72fr 1.08fr 0.62fr;
   column-gap: 0;
-  align-items: center;
+  align-items: end;
   color: #4f7df0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 2px 2px 8px;
+  padding: 2px 0 8px;
 }
 
 .list-head > div {
   white-space: nowrap;
+}
+
+.head-name {
+  padding-right: 8px;
+}
+
+.head-ko,
+.head-strike,
+.head-tenor,
+.head-coupon {
+  text-align: left;
+}
+
+.head-detail {
+  text-align: right;
 }
 
 .product-list {
@@ -123,27 +137,24 @@ body {
 
 .product-row {
   display: grid;
-  grid-template-columns: 44% 12% 16% 9% 15% 4%;
+  grid-template-columns: 2.7fr 1fr 1fr 0.72fr 1.08fr 0.62fr;
   column-gap: 0;
   align-items: center;
-  padding: 9px 2px;
+  padding: 10px 0;
   border-bottom: 2px dashed #c8d9ff;
-}
-
-.product-row > div {
-  min-width: 0;
 }
 
 .name-cell {
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.42;
   word-break: break-word;
   white-space: normal;
-  padding-right: 4px;
+  padding-right: 8px;
 }
 
 .value-cell {
   font-size: 11px;
+  line-height: 1.2;
   white-space: nowrap;
   text-align: left;
 }
@@ -156,19 +167,20 @@ body {
   color: #5a84f4;
   text-decoration: none;
   font-size: 11px;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
 .disclaimer {
   color: #9a9a9a;
   font-size: 11px;
-  line-height: 1.5;
-  padding-top: 10px;
+  line-height: 1.52;
+  padding-top: 12px;
 }
 
 .advisor-card {
-  margin-top: 14px;
-  padding: 16px 14px;
+  margin-top: 16px;
+  padding: 18px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -178,14 +190,14 @@ body {
 .advisor-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
   flex: 1;
 }
 
 .avatar-placeholder {
-  width: 74px;
-  height: 74px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   background: #efefef;
   color: #7c7c7c;
@@ -242,7 +254,7 @@ body {
   line-height: 1.35;
 }
 
-/* detail page */
+/* detail page - 保留你现有可用布局 */
 .detail-page {
   padding-top: 10px;
 }
@@ -381,7 +393,15 @@ body {
   }
 
   .hero h1 {
-    font-size: 26px;
+    font-size: 27px;
+  }
+
+  .main-card {
+    padding: 15px 12px 13px;
+  }
+
+  .tabs {
+    padding: 3px;
   }
 
   .tab-btn {
@@ -391,20 +411,21 @@ body {
 
   .share-btn {
     font-size: 13px;
-    padding: 11px 15px;
+    padding: 12px 16px;
   }
 
   .list-head {
-    grid-template-columns: 47% 11% 15% 8% 15% 4%;
-    font-size: 10px;
+    grid-template-columns: 2.95fr 0.98fr 0.98fr 0.7fr 1fr 0.64fr;
+    font-size: 11px;
   }
 
   .product-row {
-    grid-template-columns: 47% 11% 15% 8% 15% 4%;
+    grid-template-columns: 2.95fr 0.98fr 0.98fr 0.7fr 1fr 0.64fr;
   }
 
   .name-cell {
     font-size: 10.5px;
+    padding-right: 6px;
   }
 
   .value-cell,
