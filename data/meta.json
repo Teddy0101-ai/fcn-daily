@@ -1,0 +1,47 @@
+{
+  "site_title_cn": "热门选品",
+  "detail_title_cn": "选品详情",
+  "product_type_en_default": "Fixed Coupon Note",
+  "advisor_name": "Ryan Yi 易俊融",
+  "advisor_avatar_text": "点击此处\n上传个人头像",
+  "qr_caption": "长按扫码 咨询申购",
+  "disclaimer_cn": "数据截至2026/04/09，本页报价仅供参考，欲知详情可联系相关工作人员。",
+  "update_date": "2026/04/09",
+  "quote_time": "2026/04/09 08:51:00",
+  "tabs": [
+    {
+      "key": "highlight",
+      "label": "今日重点"
+    },
+    {
+      "key": "usd",
+      "label": "USD"
+    },
+    {
+      "key": "hkd",
+      "label": "HKD"
+    }
+  ],
+  "columns": [
+    {
+      "key": "underlying_display",
+      "label": "挂钩标的"
+    },
+    {
+      "key": "ko_display",
+      "label": "敲出价格"
+    },
+    {
+      "key": "strike_display",
+      "label": "执行价格"
+    },
+    {
+      "key": "tenor",
+      "label": "期限"
+    },
+    {
+      "key": "coupon_display",
+      "label": "票息(年化)"
+    }
+  ]
+}

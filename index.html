@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>热门选品</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <span id="pageTitle">热门选品</span>
+      <div class="ghost-actions">
+        <div class="ghost-pill"></div>
+        <div class="ghost-pill" style="width:50px"></div>
+      </div>
+    </div>
+
+    <div class="card main-card">
+      <div class="tabs-share">
+        <div class="tabs" id="tabs"></div>
+        <button class="share-btn" id="shareBtn">分享</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="disclaimer" id="disclaimer"></div>
+    </div>
+
+    <div class="card advisor-card">
+      <div class="avatar" id="advisorAvatarText">点击此处
+上传个人头像</div>
+      <div class="advisor-name" id="advisorName">Ryan Yi 易俊融</div>
+      <div>
+        <div class="qr-box"></div>
+        <div class="qr-caption" id="qrCaption">长按扫码 咨询申购</div>
+      </div>
+    </div>
+
+    <div class="footer-space"></div>
+  </div>
+  <script src="assets/app.js"></script>
+</body>
+</html>
