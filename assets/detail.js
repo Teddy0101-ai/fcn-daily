@@ -19,11 +19,11 @@ async function loadJson(path) {
 
 function appendDetailRow(container, label, value) {
   const labelEl = document.createElement("div");
-  labelEl.className = "detail-label";
+  labelEl.className = "detail-info-label";
   labelEl.textContent = label;
 
   const valueEl = document.createElement("div");
-  valueEl.className = "detail-value";
+  valueEl.className = "detail-info-value";
   valueEl.innerHTML = escapeHtml(value ?? "");
 
   container.appendChild(labelEl);
@@ -41,18 +41,25 @@ function fillDetail(item, meta) {
   const summaryKo = document.getElementById("summary-ko");
   const summaryTenor = document.getElementById("summary-tenor");
   const quoteTime = document.getElementById("quote-time");
-  const detailAdvisorName = document.getElementById("detail-advisor-name");
+  const advisorName = document.getElementById("detail-advisor-name");
   const grid = document.getElementById("detail-grid");
 
   if (pageTitle) pageTitle.textContent = meta?.detail_title_cn || "选品详情";
   if (productType) productType.textContent = meta?.product_type_en || "Fixed Coupon Note";
   if (title) title.textContent = item.underlying_display || "选品详情";
+
   if (summaryCoupon) summaryCoupon.textContent = item.coupon_display || "-";
   if (summaryStrike) summaryStrike.textContent = item.strike_display || "-";
   if (summaryKo) summaryKo.textContent = item.ko_display || "-";
   if (summaryTenor) summaryTenor.textContent = item.tenor || "-";
-  if (quoteTime) quoteTime.textContent = `报价时间：${item.quote_time || meta?.quote_time || "-"}`;
-  if (detailAdvisorName && meta?.advisor_name) detailAdvisorName.textContent = meta.advisor_name;
+
+  if (quoteTime) {
+    quoteTime.textContent = `报价时间：${item.quote_time || meta?.quote_time || "-"}`;
+  }
+
+  if (advisorName && meta?.advisor_name) {
+    advisorName.textContent = meta.advisor_name;
+  }
 
   grid.innerHTML = "";
 
@@ -77,14 +84,16 @@ async function initDetail() {
     ]);
 
     if (!id || !details[id]) {
-      document.getElementById("detail-title").textContent = "未找到产品";
+      const title = document.getElementById("detail-title");
+      if (title) title.textContent = "未找到产品";
       return;
     }
 
     fillDetail(details[id], meta);
   } catch (err) {
     console.error(err);
-    document.getElementById("detail-title").textContent = "加载失败";
+    const title = document.getElementById("detail-title");
+    if (title) title.textContent = "加载失败";
   }
 }
 
