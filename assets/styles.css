@@ -103,7 +103,7 @@ body {
 
 .list-head {
   display: grid;
-  grid-template-columns: 1.6fr 1.3fr 1.3fr 0.8fr 1fr 0.6fr;
+  grid-template-columns: 1.6fr 1.1fr 1.3fr 0.8fr 1fr 0.6fr;
   column-gap: 0;
   align-items: end;
   color: #4f7df0;
@@ -137,7 +137,7 @@ body {
 
 .product-row {
   display: grid;
-  grid-template-columns: 1.6fr 1.3fr 1.3fr 0.8fr 1fr 0.6fr;
+  grid-template-columns: 1.6fr 1.1fr 1.3fr 0.8fr 1fr 0.6fr;
   column-gap: 0;
   align-items: center;
   padding: 10px 0;
