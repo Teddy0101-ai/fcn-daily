@@ -18,7 +18,7 @@ body {
 .page-shell {
   width: 100%;
   max-width: 430px;
-  margin: 0 auto;F
+  margin: 0 auto;
   padding: 18px 12px 24px;
 }
 
@@ -44,7 +44,9 @@ body {
 .main-card,
 .detail-card,
 .advisor-card,
-.summary-card {
+.summary-card,
+.detail-summary-card,
+.detail-info-card {
   background: rgba(255, 255, 255, 0.94);
   border-radius: 22px;
   box-shadow: 0 8px 24px rgba(48, 83, 160, 0.10);
@@ -254,11 +256,156 @@ body {
   line-height: 1.35;
 }
 
-/* detail page - 保留你现有可用布局 */
+/* =========================
+   Detail page - rebuilt only
+   ========================= */
+
 .detail-page {
   padding-top: 10px;
 }
 
+.detail-top-hero {
+  padding: 6px 0 0;
+}
+
+.detail-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.detail-back {
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.detail-nav-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.detail-product-type {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 18px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.detail-title {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1.28;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.detail-share-row {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.detail-share-btn {
+  border: 0;
+  background: #4f7df0;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  padding: 10px 18px;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(48, 83, 160, 0.14);
+}
+
+.detail-summary-card {
+  padding: 16px 14px 12px;
+}
+
+.detail-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.detail-summary-item {
+  min-width: 0;
+}
+
+.detail-summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.2;
+}
+
+.detail-summary-red {
+  color: #ff5a55;
+}
+
+.detail-summary-label {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #9a9a9a;
+  line-height: 1.35;
+}
+
+.detail-quote-time {
+  margin-top: 12px;
+  text-align: right;
+  font-size: 11px;
+  color: #9a9a9a;
+  line-height: 1.3;
+}
+
+.detail-info-card {
+  margin-top: 12px;
+  padding: 16px 14px;
+}
+
+.detail-section-title {
+  margin: 0 0 14px;
+  font-size: 20px;
+  color: #222;
+  line-height: 1.2;
+}
+
+.detail-info-grid {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  row-gap: 10px;
+  column-gap: 12px;
+}
+
+.detail-info-label {
+  color: #9a9a9a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.detail-info-value {
+  color: #222;
+  font-size: 12px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.detail-note {
+  margin-top: 16px;
+  color: #9a9a9a;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.detail-advisor-card {
+  margin-top: 14px;
+}
+
+/* keep old classes too, in case your html/js still uses them */
 .detail-hero {
   text-align: left;
   padding-top: 10px;
@@ -293,13 +440,9 @@ body {
 .detail-main-title {
   margin: 0 0 12px;
   color: #fff;
-  font-size: 27px;
-  line-height: 1.25;
+  font-size: 24px;
+  line-height: 1.28;
   font-weight: 700;
-}
-
-.detail-share-btn {
-  margin-bottom: 12px;
 }
 
 .summary-card {
@@ -324,7 +467,7 @@ body {
 }
 
 .summary-red {
-  color: #ff4d4f;
+  color: #ff5a55;
 }
 
 .summary-label {
@@ -372,13 +515,6 @@ body {
   word-break: break-word;
 }
 
-.detail-note {
-  margin-top: 16px;
-  color: #9a9a9a;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
 @media (max-width: 390px) {
   .page-shell {
     padding-left: 10px;
@@ -388,7 +524,9 @@ body {
   .main-card,
   .detail-card,
   .advisor-card,
-  .summary-card {
+  .summary-card,
+  .detail-summary-card,
+  .detail-info-card {
     border-radius: 18px;
   }
 
@@ -442,15 +580,36 @@ body {
     height: 82px;
   }
 
+  .detail-product-type,
+  .detail-subtitle {
+    font-size: 17px;
+  }
+
+  .detail-title,
   .detail-main-title {
-    font-size: 24px;
+    font-size: 22px;
   }
 
-  .detail-grid {
-    grid-template-columns: 96px 1fr;
+  .detail-nav-title,
+  .detail-top-title {
+    font-size: 17px;
   }
 
+  .detail-summary-value,
   .summary-value {
     font-size: 17px;
+  }
+
+  .detail-info-grid,
+  .detail-grid {
+    grid-template-columns: 96px 1fr;
+    column-gap: 10px;
+  }
+
+  .detail-info-label,
+  .detail-info-value,
+  .detail-label,
+  .detail-value {
+    font-size: 11.5px;
   }
 }
