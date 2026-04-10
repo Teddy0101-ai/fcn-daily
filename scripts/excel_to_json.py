@@ -191,21 +191,19 @@ def normalize_row(section, row, display_rank, ticker_map, dictionary, fallback_d
     return record
 
 def main():
-    if not RAW_FILE.exists():
-        raise FileNotFoundError(f"Missing input file: {RAW_FILE}")
+    raw_file = get_latest_raw_file()
 
     dictionary = load_dictionary()
-    xls = pd.ExcelFile(RAW_FILE)
+    xls = pd.ExcelFile(raw_file)
     ticker_map = build_ticker_map(xls)
-    fallback_date = file_date_text(RAW_FILE)
-
+    fallback_date = file_date_text(raw_file)
     all_details = {}
     meta_dates = []
     meta_quote_times = []
     outputs = {}
 
     for sheet_name, section in SHEET_MAP.items():
-        df = pd.read_excel(RAW_FILE, sheet_name=sheet_name)
+        df = pd.read_excel(raw_file, sheet_name=sheet_name)
         # keep only rows with Quote ID
         df = df[df["Quote ID"].notna()].copy()
         records = []
