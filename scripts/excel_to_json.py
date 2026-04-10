@@ -2,15 +2,32 @@ import json
 import math
 import re
 from pathlib import Path
+from typing import Dict, Any, List, Optional
 
 import pandas as pd
 
+
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "raw"
-RAW_FILE_PATTERN = re.compile(r"^HKD USD Daily Run (\d{2})(\d{2})(\d{4})\.xlsx$", re.IGNORECASE)
+DATA_DIR = ROOT / "data"
+DICT_FILE = ROOT / "scripts" / "dictionary.json"
 
-def get_latest_raw_file():
+# Match: HKD USD Daily Run 10042026.xlsx
+RAW_FILE_PATTERN = re.compile(
+    r"^HKD USD Daily Run (\d{2})(\d{2})(\d{4})\.xlsx$",
+    re.IGNORECASE
+)
+
+SHEET_MAP = {
+    "今日重点": "highlight",
+    "USD": "usd",
+    "HKD": "hkd",
+}
+
+
+def get_latest_raw_file() -> Path:
     candidates = []
+
     for path in RAW_DIR.glob("*.xlsx"):
         m = RAW_FILE_PATTERN.match(path.name)
         if not m:
@@ -22,234 +39,335 @@ def get_latest_raw_file():
     if not candidates:
         raise FileNotFoundError(
             f"No matching Excel file found in {RAW_DIR}. "
-            "Expected format like: HKD USD Daily Run 10042026.xlsx"
+            f"Expected format like: HKD USD Daily Run 10042026.xlsx"
         )
 
     candidates.sort(key=lambda x: x[0], reverse=True)
     return candidates[0][1]
-DATA_DIR = ROOT / "data"
-DICT_FILE = ROOT / "scripts" / "dictionary.json"
 
-SHEET_MAP = {
-    "今日重点": "highlight",
-    "USD": "usd",
-    "HKD": "hkd",
-}
 
-def load_dictionary():
-    with open(DICT_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+def ensure_dirs():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-def format_date(v):
-    if pd.isna(v) or v == "":
+
+def load_dictionary() -> Dict[str, Any]:
+    if DICT_FILE.exists():
+        with open(DICT_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def clean_str(value: Any) -> str:
+    if value is None:
         return ""
+    if isinstance(value, float) and math.isnan(value):
+        return ""
+    return str(value).strip()
+
+
+def is_blank(value: Any) -> bool:
+    return clean_str(value) == ""
+
+
+def normalize_percent(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, float) and math.isnan(value):
+        return None
+
+    s = clean_str(value)
+    if not s:
+        return None
+
+    s = s.replace("%", "").replace(",", "").strip()
+
     try:
-        ts = pd.to_datetime(v)
-        return ts.strftime("%Y/%m/%d")
-    except Exception:
-        return str(v)
+        num = float(s)
+    except ValueError:
+        return None
 
-def file_date_text(path: Path):
-    m = re.search(r"(\d{2})(\d{2})(\d{4})", path.name)
-    if m:
-        dd, mm, yyyy = m.groups()
-        return f"{yyyy}/{mm}/{dd}"
-    return ""
+    return num
 
-def format_pct(v):
-    if pd.isna(v) or v == "":
+
+def format_percent(value: Optional[float]) -> str:
+    if value is None:
         return "-"
-    x = float(v)
-    if abs(x - round(x)) < 1e-9:
-        return f"{int(round(x))}%"
-    s = f"{x:.2f}".rstrip("0").rstrip(".")
-    return f"{s}%"
+    if abs(value - round(value)) < 1e-9:
+        return f"{int(round(value))}%"
+    return f"{value:.2f}%".rstrip("0").rstrip(".") + "%"
 
-def clean_text(v):
-    if pd.isna(v):
+
+def normalize_date(value: Any) -> str:
+    if value is None:
         return ""
-    return str(v).strip()
+    if isinstance(value, float) and math.isnan(value):
+        return ""
 
-def split_codes(s):
-    return [part.strip() for part in clean_text(s).split("+") if part.strip()]
+    if isinstance(value, pd.Timestamp):
+        return value.strftime("%Y/%m/%d")
 
-def build_ticker_map(xls):
+    s = clean_str(value)
+    if not s:
+        return ""
+
+    parsed = pd.to_datetime(s, errors="coerce", dayfirst=False)
+    if pd.isna(parsed):
+        return s
+    return parsed.strftime("%Y/%m/%d")
+
+
+def file_date_text(path: Path) -> str:
+    m = RAW_FILE_PATTERN.match(path.name)
+    if not m:
+        return ""
+    dd, mm, yyyy = m.groups()
+    return f"{yyyy}/{mm}/{dd}"
+
+
+def build_ticker_map(xls: pd.ExcelFile) -> Dict[str, str]:
+    ticker_map: Dict[str, str] = {}
+
+    if "Tickers" not in xls.sheet_names:
+        return ticker_map
+
     df = pd.read_excel(xls, sheet_name="Tickers")
-    cols = list(df.columns)
-    mapping = {}
-    if len(cols) >= 2:
-        # First row is likely stored as headers, so include headers as data
-        mapping[clean_text(cols[0])] = clean_text(cols[1])
-        for _, row in df.iterrows():
-            code = clean_text(row[cols[0]])
-            name = clean_text(row[cols[1]])
-            if code:
-                mapping[code] = name
-    return mapping
 
-def map_name_from_codes(code_str, ticker_map, dictionary):
-    codes = split_codes(code_str)
+    if df.empty:
+        return ticker_map
+
+    cols = list(df.columns)
+    if len(cols) < 2:
+        return ticker_map
+
+    code_col = cols[0]
+    name_col = cols[1]
+
+    for _, row in df.iterrows():
+        code = clean_str(row.get(code_col))
+        name = clean_str(row.get(name_col))
+        if code and name:
+            ticker_map[code] = name
+
+    return ticker_map
+
+
+def map_ko_type(raw: str) -> str:
+    raw = clean_str(raw).lower()
+
+    if raw in {"daily close memory", "daily memory"}:
+        return "记忆型每日"
+    if raw in {"daily close", "daily"}:
+        return "每日"
+    return clean_str(raw) or "-"
+
+
+def map_ki_type(raw: str) -> str:
+    raw_clean = clean_str(raw).lower()
+    if raw_clean in {"", "n/a", "na", "none"}:
+        return "无"
+    return clean_str(raw)
+
+
+def lock_period_from_eop(value: Any) -> str:
+    s = clean_str(value)
+    if not s:
+        return "-"
+    try:
+        num = int(float(s))
+        return f"{num}M"
+    except Exception:
+        return s
+
+
+def split_codes(text: str) -> List[str]:
+    if not text:
+        return []
+    return [x.strip() for x in text.split("+") if x.strip()]
+
+
+def join_cn_names_from_codes(code_text: str, ticker_map: Dict[str, str]) -> str:
+    codes = split_codes(code_text)
+    if not codes:
+        return ""
+
     names = []
     for code in codes:
-        name = dictionary["codes_to_cn"].get(code) or ticker_map.get(code) or code
-        names.append(name)
+        names.append(ticker_map.get(code, code))
     return " + ".join(names)
 
-def map_underlying_name(section, row, ticker_map, dictionary):
+
+def resolve_underlying_name(
+    section: str,
+    row: pd.Series,
+    ticker_map: Dict[str, str]
+) -> str:
     if section == "highlight":
-        raw = clean_text(row.get("Underlying Name (Translated)", ""))
-        if raw:
-            return raw
-        return map_name_from_codes(row.get("Underlying (BBG) Indicative", ""), ticker_map, dictionary)
+        translated = clean_str(row.get("Underlying Name (Translated)"))
+        if translated:
+            return translated
 
-    raw = clean_text(row.get("Underlying Name", ""))
-    if raw:
-        return raw
-    return map_name_from_codes(row.get("Underlying (BBG) Indicative", ""), ticker_map, dictionary)
+    name_raw = clean_str(row.get("Underlying Name"))
+    if name_raw:
+        return name_raw
 
-def map_ko_type(v, dictionary):
-    raw = clean_text(v)
-    return dictionary["ko_type"].get(raw, raw)
+    bbg = clean_str(row.get("Underlying (BBG) Indicative"))
+    mapped = join_cn_names_from_codes(bbg, ticker_map)
+    if mapped:
+        return mapped
 
-def map_ki_type(v, dictionary):
-    raw = clean_text(v)
-    if not raw:
-        return "无"
-    return dictionary["ki_type"].get(raw, raw)
+    return bbg or "-"
 
-def parse_lock_period(v):
-    if pd.isna(v) or v == "":
-        return ""
-    try:
-        return f"{int(float(v))}M"
-    except Exception:
-        return clean_text(v)
 
-def numeric_or_none(v):
-    if pd.isna(v) or v == "":
-        return None
-    try:
-        return float(v)
-    except Exception:
-        return None
-
-def build_underlying_detail_display(name_cn, bbg):
+def build_underlying_detail_display(name_cn: str, bbg: str) -> str:
+    if not name_cn:
+        return bbg or "-"
     if not bbg:
         return name_cn
     return f"{name_cn}（{bbg}）"
 
-def quote_time_from_row(row, fallback_date):
-    strike_date = format_date(row.get("Strike Date", ""))
-    if strike_date:
-        return f"{strike_date} 08:51:00"
-    if fallback_date:
-        return f"{fallback_date} 08:51:00"
-    return ""
 
-def normalize_row(section, row, display_rank, ticker_map, dictionary, fallback_date):
-    underlying_name_cn = map_underlying_name(section, row, ticker_map, dictionary)
-    product = clean_text(row.get("Product", ""))
-    ki_pct = numeric_or_none(row.get("KI %"))
-    record = {
-        "id": clean_text(row.get("Quote ID", "")),
+def normalize_row(
+    section: str,
+    row: pd.Series,
+    display_rank: int,
+    ticker_map: Dict[str, str],
+    fallback_date: str,
+) -> Dict[str, Any]:
+    product_type = clean_str(row.get("Product")) or "FCN"
+    currency = clean_str(row.get("CCY"))
+    tenor = clean_str(row.get("Tenor"))
+    strike_date = normalize_date(row.get("Strike Date")) or fallback_date
+    issue_date = normalize_date(row.get("Issue Date"))
+    final_valuation_date = normalize_date(row.get("Final Valuation Date"))
+    maturity_date = normalize_date(row.get("Maturity Date"))
+
+    underlying_reuters = clean_str(row.get("Underlying (Reuters)"))
+    underlying_bbg = clean_str(row.get("Underlying (BBG) Indicative"))
+    underlying_display = resolve_underlying_name(section, row, ticker_map)
+
+    strike_pct = normalize_percent(row.get("Strike %"))
+    coupon_pa_pct = normalize_percent(row.get("Coupon % p.a."))
+    ko_pct = normalize_percent(row.get("KO %"))
+    ki_pct = normalize_percent(row.get("KI %"))
+    interbank_price_pct = normalize_percent(row.get("Interbank Price %"))
+
+    ko_type_raw = clean_str(row.get("KO Type"))
+    ki_type_raw = clean_str(row.get("KI Type"))
+    first_callable_eop = row.get("First Callable End of Period")
+
+    quote_time = f"{strike_date} 08:51:00" if strike_date else ""
+
+    rec = {
+        "id": clean_str(row.get("Quote ID")),
         "section": section,
-        "currency": clean_text(row.get("CCY", "")),
-        "product_type": product,
-        "product_type_en": dictionary["product_type_en"].get(product, product),
-        "tenor": clean_text(row.get("Tenor", "")),
-        "strike_date": format_date(row.get("Strike Date", "")),
-        "issue_date": format_date(row.get("Issue Date", "")),
-        "final_valuation_date": format_date(row.get("Final Valuation Date", "")),
-        "maturity_date": format_date(row.get("Maturity Date", "")),
-        "underlying_reuters": clean_text(row.get("Underlying (Reuters)", "")),
-        "underlying_bbg": clean_text(row.get("Underlying (BBG) Indicative", "")),
-        "underlying_name_raw": clean_text(row.get("Underlying Name (Translated)", "")) or clean_text(row.get("Underlying Name", "")),
-        "underlying_name_cn": underlying_name_cn,
-        "underlying_display": underlying_name_cn,
-        "underlying_detail_display": build_underlying_detail_display(underlying_name_cn, clean_text(row.get("Underlying (BBG) Indicative", ""))),
-        "strike_pct": numeric_or_none(row.get("Strike %")),
-        "strike_display": format_pct(row.get("Strike %")),
-        "coupon_pa_pct": numeric_or_none(row.get("Coupon % p.a.")),
-        "coupon_display": format_pct(row.get("Coupon % p.a.")),
-        "coupon_frequency": clean_text(row.get("Coupon Frequency", "")),
-        "ko_pct": numeric_or_none(row.get("KO %")),
-        "ko_display": format_pct(row.get("KO %")),
-        "ko_type_raw": clean_text(row.get("KO Type", "")),
-        "ko_type_cn": map_ko_type(row.get("KO Type", ""), dictionary),
-        "first_callable_eop_months": numeric_or_none(row.get("First Callable End of Period")),
-        "lock_period": parse_lock_period(row.get("First Callable End of Period")),
+        "currency": currency,
+        "product_type": product_type,
+        "tenor": tenor,
+        "strike_date": strike_date,
+        "issue_date": issue_date,
+        "final_valuation_date": final_valuation_date,
+        "maturity_date": maturity_date,
+        "underlying_reuters": underlying_reuters,
+        "underlying_bbg": underlying_bbg,
+        "underlying_name_raw": underlying_display,
+        "underlying_name_cn": underlying_display,
+        "underlying_display": underlying_display,
+        "underlying_detail_display": build_underlying_detail_display(
+            underlying_display, underlying_bbg
+        ),
+        "strike_pct": strike_pct,
+        "strike_display": format_percent(strike_pct),
+        "coupon_pa_pct": coupon_pa_pct,
+        "coupon_display": format_percent(coupon_pa_pct),
+        "coupon_frequency": clean_str(row.get("Coupon Frequency")),
+        "ko_pct": ko_pct,
+        "ko_display": format_percent(ko_pct),
+        "ko_type_raw": ko_type_raw,
+        "ko_type_cn": map_ko_type(ko_type_raw),
+        "first_callable_eop_months": clean_str(first_callable_eop),
+        "lock_period": lock_period_from_eop(first_callable_eop),
         "ki_pct": ki_pct,
-        "ki_display": "-" if ki_pct is None else format_pct(ki_pct),
-        "ki_type_raw": clean_text(row.get("KI Type", "")),
-        "ki_type_cn": map_ki_type(row.get("KI Type", ""), dictionary),
-        "min_max_notional": clean_text(row.get("Min/Max Notional", "")),
-        "issuer": clean_text(row.get("Issuer", "")),
-        "interbank_price_pct": numeric_or_none(row.get("Interbank Price %")),
-        "quote_time": quote_time_from_row(row, fallback_date),
+        "ki_display": format_percent(ki_pct) if ki_pct is not None else "-",
+        "ki_type_raw": ki_type_raw,
+        "ki_type_cn": map_ki_type(ki_type_raw),
+        "min_max_notional": clean_str(row.get("Min/Max Notional")),
+        "issuer": clean_str(row.get("Issuer")),
+        "interbank_price_pct": interbank_price_pct,
+        "quote_time": quote_time,
         "display_rank": display_rank,
     }
-    return record
+
+    return rec
+
+
+def write_json(path: Path, data: Any):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 def main():
-    raw_file = get_latest_raw_file()
+    ensure_dirs()
 
-    dictionary = load_dictionary()
+    raw_file = get_latest_raw_file()
+    fallback_date = file_date_text(raw_file)
+
+    dictionary = load_dictionary()  # kept for future use
+    _ = dictionary
+
     xls = pd.ExcelFile(raw_file)
     ticker_map = build_ticker_map(xls)
-    fallback_date = file_date_text(raw_file)
-    all_details = {}
-    meta_dates = []
-    meta_quote_times = []
-    outputs = {}
+
+    all_details: Dict[str, Dict[str, Any]] = {}
+    outputs: Dict[str, List[Dict[str, Any]]] = {
+        "highlight": [],
+        "usd": [],
+        "hkd": [],
+    }
 
     for sheet_name, section in SHEET_MAP.items():
+        if sheet_name not in xls.sheet_names:
+            continue
+
         df = pd.read_excel(raw_file, sheet_name=sheet_name)
-        # keep only rows with Quote ID
+
+        if "Quote ID" not in df.columns:
+            continue
+
         df = df[df["Quote ID"].notna()].copy()
+
         records = []
         for idx, (_, row) in enumerate(df.iterrows(), start=1):
-            rec = normalize_row(section, row, idx, ticker_map, dictionary, fallback_date)
+            rec = normalize_row(section, row, idx, ticker_map, fallback_date)
+            if not rec["id"]:
+                continue
             records.append(rec)
             all_details[rec["id"]] = rec
-            if rec["strike_date"]:
-                meta_dates.append(rec["strike_date"])
-            if rec["quote_time"]:
-                meta_quote_times.append(rec["quote_time"])
+
         outputs[section] = records
 
-    update_date = max(meta_dates) if meta_dates else fallback_date
-    quote_time = max(meta_quote_times) if meta_quote_times else (f"{fallback_date} 08:51:00" if fallback_date else "")
+    update_date = fallback_date
+    quote_time = f"{fallback_date} 08:51:00" if fallback_date else ""
 
     meta = {
         "site_title_cn": "热门选品",
         "detail_title_cn": "选品详情",
-        "product_type_en_default": "Fixed Coupon Note",
+        "product_type_en": "Fixed Coupon Note",
         "advisor_name": "Ryan Yi 易俊融",
-        "advisor_avatar_text": "点击此处\n上传个人头像",
-        "qr_caption": "长按扫码 咨询申购",
         "disclaimer_cn": f"数据截至{update_date}，本页报价仅供参考，欲知详情可联系相关工作人员。" if update_date else "本页报价仅供参考，欲知详情可联系相关工作人员。",
         "update_date": update_date,
         "quote_time": quote_time,
-        "tabs": [
-            {"key": "highlight", "label": "今日重点"},
-            {"key": "usd", "label": "USD"},
-            {"key": "hkd", "label": "HKD"}
-        ],
-        "columns": [
-            {"key": "underlying_display", "label": "挂钩标的"},
-            {"key": "ko_display", "label": "敲出价格"},
-            {"key": "strike_display", "label": "执行价格"},
-            {"key": "tenor", "label": "期限"},
-            {"key": "coupon_display", "label": "票息(年化)"}
-        ]
+        "source_file": raw_file.name,
     }
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    (DATA_DIR / "highlight.json").write_text(json.dumps(outputs["highlight"], ensure_ascii=False, indent=2), encoding="utf-8")
-    (DATA_DIR / "usd.json").write_text(json.dumps(outputs["usd"], ensure_ascii=False, indent=2), encoding="utf-8")
-    (DATA_DIR / "hkd.json").write_text(json.dumps(outputs["hkd"], ensure_ascii=False, indent=2), encoding="utf-8")
-    (DATA_DIR / "details.json").write_text(json.dumps(all_details, ensure_ascii=False, indent=2), encoding="utf-8")
-    (DATA_DIR / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_json(DATA_DIR / "highlight.json", outputs["highlight"])
+    write_json(DATA_DIR / "usd.json", outputs["usd"])
+    write_json(DATA_DIR / "hkd.json", outputs["hkd"])
+    write_json(DATA_DIR / "details.json", all_details)
+    write_json(DATA_DIR / "meta.json", meta)
+
+    print(f"Using latest raw file: {raw_file.name}")
+    print("JSON files generated successfully.")
+
 
 if __name__ == "__main__":
     main()
