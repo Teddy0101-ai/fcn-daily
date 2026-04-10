@@ -65,10 +65,6 @@ def clean_str(value: Any) -> str:
     return str(value).strip()
 
 
-def is_blank(value: Any) -> bool:
-    return clean_str(value) == ""
-
-
 def normalize_percent(value: Any) -> Optional[float]:
     if value is None:
         return None
@@ -82,19 +78,20 @@ def normalize_percent(value: Any) -> Optional[float]:
     s = s.replace("%", "").replace(",", "").strip()
 
     try:
-        num = float(s)
+        return float(s)
     except ValueError:
         return None
-
-    return num
 
 
 def format_percent(value: Optional[float]) -> str:
     if value is None:
         return "-"
+
     if abs(value - round(value)) < 1e-9:
         return f"{int(round(value))}%"
-    return f"{value:.2f}%".rstrip("0").rstrip(".") + "%"
+
+    s = f"{value:.2f}".rstrip("0").rstrip(".")
+    return f"{s}%"
 
 
 def normalize_date(value: Any) -> str:
@@ -152,18 +149,18 @@ def build_ticker_map(xls: pd.ExcelFile) -> Dict[str, str]:
 
 
 def map_ko_type(raw: str) -> str:
-    raw = clean_str(raw).lower()
+    raw_lower = clean_str(raw).lower()
 
-    if raw in {"daily close memory", "daily memory"}:
+    if raw_lower in {"daily close memory", "daily memory"}:
         return "记忆型每日"
-    if raw in {"daily close", "daily"}:
+    if raw_lower in {"daily close", "daily"}:
         return "每日"
     return clean_str(raw) or "-"
 
 
 def map_ki_type(raw: str) -> str:
     raw_clean = clean_str(raw).lower()
-    if raw_clean in {"", "n/a", "na", "none"}:
+    if raw_clean in {"", "n/a", "na", "none", "nan"}:
         return "无"
     return clean_str(raw)
 
@@ -311,7 +308,7 @@ def main():
     raw_file = get_latest_raw_file()
     fallback_date = file_date_text(raw_file)
 
-    dictionary = load_dictionary()  # kept for future use
+    dictionary = load_dictionary()
     _ = dictionary
 
     xls = pd.ExcelFile(raw_file)
