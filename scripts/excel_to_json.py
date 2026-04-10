@@ -6,7 +6,27 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-RAW_FILE = ROOT / "raw" / "latest.xlsx"
+RAW_DIR = ROOT / "raw"
+RAW_FILE_PATTERN = re.compile(r"^HKD USD Daily Run (\d{2})(\d{2})(\d{4})\.xlsx$", re.IGNORECASE)
+
+def get_latest_raw_file():
+    candidates = []
+    for path in RAW_DIR.glob("*.xlsx"):
+        m = RAW_FILE_PATTERN.match(path.name)
+        if not m:
+            continue
+        dd, mm, yyyy = m.groups()
+        sort_key = f"{yyyy}{mm}{dd}"
+        candidates.append((sort_key, path))
+
+    if not candidates:
+        raise FileNotFoundError(
+            f"No matching Excel file found in {RAW_DIR}. "
+            "Expected format like: HKD USD Daily Run 10042026.xlsx"
+        )
+
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][1]
 DATA_DIR = ROOT / "data"
 DICT_FILE = ROOT / "scripts" / "dictionary.json"
 
